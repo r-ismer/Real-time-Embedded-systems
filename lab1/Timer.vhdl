@@ -15,7 +15,9 @@ entity Timer is
         address : in std_logic_vector(2 downto 0);
 
         -- interrupt
-        irq : out std_logic
+        irq : out std_logic;
+
+        irq_pin : out std_logic
     );
 end Timer;
 
@@ -97,6 +99,7 @@ begin
     end if;
 end process;
 
+irq_pin <= '1' when iRegEOT = '1' and iRegIrqEnable = '1' and iRegEnable = '1' else '0';
 irq <= '1' when iRegEOT = '1' and iRegIrqEnable = '1' and iRegEnable = '1' else '0';
 
 end comp;
