@@ -16,7 +16,7 @@ entity Timer is
 
         -- interrupt
         irq : out std_logic;
-
+        -- IRQ signal exported to the pins
         irq_pin : out std_logic
     );
 end Timer;
@@ -46,11 +46,11 @@ begin
         if write = '1' then
             case address is
                 when "000" => null;
-                when "001" => iReset <= '1';
+                when "001" => iRegCompare <= unsigned(writedata);
                 when "010" => iRegEnable <= writedata(0);
-                when "011" => iRegIrqEnable <= writedata(0);
-                when "100" => iClrEOT <= writedata(0);
-                when "101" => iRegCompare <= unsigned(writedata);
+                when "011" => iClrEOT <= writedata(0);
+                when "100" => iRegIrqEnable <= writedata(0);
+                when "101" => iReset <= '1';
                 when others => null;
             end case;
         end if;
@@ -65,10 +65,10 @@ begin
         if read = '1' then
             case address is
                 when "000" => readdata <= std_logic_vector(iRegCount);
-                when "011" => readdata(0) <= iRegIrqEnable;
-                when "100" => readdata(1) <= iRegEnable;
-                              readdata(0) <= iRegEOT;
-                when "101" => readdata <= std_logic_vector(iRegCompare);
+                when "001" => readdata <= std_logic_vector(iRegCompare);
+                when "010" => readdata(0) <= iRegEnable;
+                when "011" => readdata(0) <= iRegEOT;
+                when "100" => readdata(0) <= iRegIrqEnable;
                 when others => null;
             end case;
         end if;
