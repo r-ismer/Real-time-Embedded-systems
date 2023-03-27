@@ -18,7 +18,8 @@ entity ParallelPort is
         address : in std_logic_vector(2 downto 0);
 
         -- Conduit
-        ParallelPortConduit : inout std_logic_vector(width-1 downto 0);
+        ParallelPortConduitIn : in std_logic_vector(width-1 downto 0);
+        ParallelPortConduitOut : out std_logic_vector(width-1 downto 0);
         Irq : out std_logic
     );
 end ParallelPort;
@@ -29,7 +30,7 @@ architecture comp of ParallelPort is
     signal iRegPins : std_logic_vector(width-1 downto 0);
     signal LastPin : std_logic;
 begin
-    iRegPins <= ParallelPortConduit;
+    iRegPins <= ParallelPortConduitIn;
 
     slave_read : process(clk,nReset)
     begin
@@ -69,9 +70,9 @@ begin
     begin
         for i in 0 to width-1 loop
             if iRegDirection(i) = '0' then
-                ParallelPortConduit(i) <= 'Z';
+                ParallelPortConduitOut(i) <= ParallelPortConduitIn(i);
             else
-                ParallelPortConduit(i) <= iRegPort(i);
+                ParallelPortConduitOut(i) <= iRegPort(i);
             end if;
         end loop;
     end process;
