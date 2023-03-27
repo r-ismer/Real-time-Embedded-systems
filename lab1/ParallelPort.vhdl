@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity ParallelPort is
     generic(
-        width : integer := 32
+        width : integer := 8
     );
     port(
         clk : in std_logic;
@@ -18,7 +18,8 @@ entity ParallelPort is
         address : in std_logic_vector(2 downto 0);
 
         -- Conduit
-        ParallelPortConduit : inout std_logic_vector(width-1 downto 0)
+        ParallelPortConduit : inout std_logic_vector(width-1 downto 0);
+        Irq : out std_logic
     );
 end ParallelPort;
 
@@ -26,6 +27,7 @@ architecture comp of ParallelPort is
     signal iRegDirection : std_logic_vector(width-1 downto 0);
     signal iRegPort : std_logic_vector(width-1 downto 0);
     signal iRegPins : std_logic_vector(width-1 downto 0);
+    signal LastPin : std_logic;
 begin
     iRegPins <= ParallelPortConduit;
 
@@ -37,8 +39,9 @@ begin
             if read = '1' then
                 readdata <= (others => '0');
                 case address is
-                    when "000" => readdata <= iRegPins;
-                    when "001" => readdata <= iRegPort;
+                    when "000" => readdata <= iRegDirection;
+                    when "001" => readdata <= iRegPins;
+                    when "010" => readdata <= iRegPort;
                     when others => null;
                 end case;
             end if;
@@ -52,11 +55,10 @@ begin
             -- Avalon Slave write
             if write = '1' then
                 case address is
-                    when "000" => null;
-                    when "001" => iRegDirection <= writedata;
+                    when "000" => iRegDirection <= writedata;
                     when "010" => iRegPort <= writedata;
-                    when "011" => iRegPort <= iRegPort and (not writedata); -- clear
-                    when "100" => iRegPort <= iRegPort or writedata; -- set
+                    when "011" => iRegPort <= iRegPort or writedata; -- set
+                    when "100" => iRegPort <= iRegPort and (not writedata); -- clear
                     when others => null;
                 end case;
             end if;
@@ -72,6 +74,17 @@ begin
                 ParallelPortConduit(i) <= iRegPort(i);
             end if;
         end loop;
+    end process;
+
+    interrupt : process(clk)
+    begin
+        if rising_edge(clk) then
+            Irq <= '0';
+            if LastPin = '1' and iRegPins(0) = '0' then
+                Irq <= '1';
+            end if;
+            LastPin <= iRegPins(0);
+        end if;
     end process;
 
 end comp;
