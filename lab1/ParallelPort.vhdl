@@ -20,8 +20,9 @@ entity ParallelPort is
         -- Conduit
         ParallelPortConduitIn : in std_logic_vector(width-1 downto 0);
         ParallelPortConduitOut : out std_logic_vector(width-1 downto 0);
-        Irq : out std_logic
-    );
+        Irq : out std_logic;
+        irq_pin : out std_logic
+        );
 end ParallelPort;
 
 architecture comp of ParallelPort is
@@ -80,12 +81,11 @@ begin
     interrupt : process(clk)
     begin
         if rising_edge(clk) then
-            Irq <= '0';
-            if LastPin = '1' and iRegPins(0) = '0' then
-                Irq <= '1';
-            end if;
             LastPin <= iRegPins(0);
         end if;
     end process;
+
+Irq <= '1' when LastPin = '1' and iRegPins(0) = '0' else '0';
+irq_pin <= '1' when LastPin = '1' and iRegPins(0) = '0' else '0';
 
 end comp;
