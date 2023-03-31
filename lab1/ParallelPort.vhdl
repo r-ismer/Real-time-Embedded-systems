@@ -29,6 +29,7 @@ architecture comp of ParallelPort is
     signal iRegDirection : std_logic_vector(width-1 downto 0);
     signal iRegPort : std_logic_vector(width-1 downto 0);
     signal iRegPins : std_logic_vector(width-1 downto 0);
+    signal ClrInterrupt : std_logic;
     signal LastPin : std_logic;
 begin
     iRegPins <= ParallelPortConduitIn;
@@ -53,7 +54,11 @@ begin
     slave_write : process(clk,nReset)
     begin
         if nReset = '0' then
+            iRegDirection <= (others => '0');
+            iRegPort <= (others => '0');
+            ClrInterrupt <= '0';
         elsif rising_edge(clk) then
+            ClrInterrupt <= '0';
             -- Avalon Slave write
             if write = '1' then
                 case address is
@@ -61,6 +66,7 @@ begin
                     when "010" => iRegPort <= writedata;
                     when "011" => iRegPort <= iRegPort or writedata; -- set
                     when "100" => iRegPort <= iRegPort and (not writedata); -- clear
+                    when "101" => ClrInterrupt <= writedata(0);
                     when others => null;
                 end case;
             end if;
@@ -80,12 +86,20 @@ begin
 
     interrupt : process(clk)
     begin
-        if rising_edge(clk) then
-            LastPin <= iRegPins(0);
+        if nReset = '0' then
+            Irq <= '0';
+            irq_pin <= '0';
+            LastPin <= '0';
+        elsif rising_edge(clk) then
+            if LastPin = '1' and ParallelPortConduitIn(0) = '0' then
+                Irq <= '1';
+                irq_pin <= '1';
+            elsif ClrInterrupt = '1' then
+                Irq <= '0';
+                irq_pin <= '0';
+            end if;
+            LastPin <= ParallelPortConduitIn(0);
         end if;
     end process;
-
-Irq <= '1' when LastPin = '1' and iRegPins(0) = '0' else '0';
-irq_pin <= '1' when LastPin = '1' and iRegPins(0) = '0' else '0';
 
 end comp;
