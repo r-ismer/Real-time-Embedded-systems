@@ -9,13 +9,13 @@ entity swapbitdma is
 
         as_address :        in std_logic_vector(1 downto 0);
         as_read :           in std_logic;
-        as_readdate :       out std_logic_vector(31 downto 0);
+        as_readdata :       out std_logic_vector(31 downto 0);
         as_write :          in std_logic;
         as_writedata :      in std_logic_vector(31 downto 0);
 
         am_address :        out std_logic_vector(31 downto 0);
         am_read :           out std_logic;
-        am_readdate :       in std_logic_vector(31 downto 0);
+        am_readdata :       in std_logic_vector(31 downto 0);
         am_write :          out std_logic;
         am_writedata :      out std_logic_vector(31 downto 0);
         am_wait_request :   in std_logic;
@@ -25,7 +25,7 @@ end entity swapbitdma;
 
 architecture comp of swapbitdma is
 
-    type States is (IDLE, RETIEVE, SEND);
+    type States is (IDLE, RETRIEVE, SEND);
     signal state : States;
 
     signal read_address :   std_logic_vector(31 downto 0);
@@ -33,12 +33,12 @@ architecture comp of swapbitdma is
     signal length :         std_logic_vector(31 downto 0);
     signal start :          std_logic;
 
-    signal index :          unsigned = '0';
+    signal index :          unsigned(31 downto 0);
 
     signal data :           std_logic_vector(31 downto 0);
 
 begin
-    as_read: process(clk, reset_n)
+    slave_read: process(clk, reset_n)
     begin
         if reset_n = '0' then 
             as_readdata <= (others => '0');
@@ -52,14 +52,19 @@ begin
                     as_readdata <= write_address;
                 when "10" => 
                     as_readdata <= length;
-                when "11" => 
-                    as_readata(0) <= '1' when state /= IDLE else '0';
+                when "11" =>
+                    if state /= IDLE then
+                        as_readdata(0) <= '0';
+                    else
+                        as_readdata(0) <= '1';
+                    end if;
+                when others => null;
                 end case;
             end if;
         end if;
     end process;
 
-    as_write: process(clk, reset_n)
+    slave_write: process(clk, reset_n)
     begin
         if reset_n = '0' then
             read_address <= (others => '0');
@@ -78,6 +83,7 @@ begin
                     length <= as_writedata;
                 when "11" =>
                     start <= as_writedata(0);
+                when others => null;
                 end case;
             end if;
         end if;
@@ -87,7 +93,7 @@ begin
     begin
         if reset_n = '0' then
             state <= IDLE;
-            index <= 0;
+            index <= (others => '0');
             am_address <= (others => '0');
             am_read <= '0';
             am_write <= '0';
@@ -97,12 +103,12 @@ begin
 
             case state is 
             when IDLE =>
-                index <= 0;
+                index <= (others => '0');
                 if start = '1' then
-                    state <= SEND_ADDR;
+                    state <= RETRIEVE;
                 end if;
             when RETRIEVE => 
-                am_address <= std_logic_vector(unsigned(read_address) + (index << 2));
+                am_address <= std_logic_vector((unsigned(read_address) + (index*4)));
                 am_read <= '1';
                 am_byte_enable <= "1111";
                 if am_wait_request = '0' then 
@@ -128,17 +134,18 @@ begin
                     data(31 downto 0) <= am_readdata(7 downto 0);
                 end if;
             when SEND => 
-                am_address <= std_logic_vector(unsigned(write_address) + (index << 2));
+                am_address <= std_logic_vector(unsigned(write_address) + (index*4));
                 am_write <= '1';
                 am_writedata <= data;
                 if am_wait_request = '0' then
                     index <= index + 1;
                     am_write <= '0';
-                    if index + 1 >= length then 
-                        index <= 0;
+                    if index + 1 >= unsigned(length) then 
+                        index <= (others => '0');
                         state <= IDLE;
                     end if;
                 end if;
+            when others => null;
             end case;
         end if;
     end process;
