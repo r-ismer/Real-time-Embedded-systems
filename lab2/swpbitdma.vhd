@@ -105,44 +105,48 @@ begin
             when IDLE =>
                 index <= (others => '0');
                 if start = '1' then
+                    am_read <= '1';
+                    am_address <= std_logic_vector((unsigned(read_address) + shift_left(index, 2)));
+                    am_byte_enable <= "1111";
                     state <= RETRIEVE;
                 end if;
             when RETRIEVE => 
-                am_address <= std_logic_vector((unsigned(read_address) + (index*4)));
-                am_read <= '1';
-                am_byte_enable <= "1111";
                 if am_wait_request = '0' then 
                     state <= SEND;
                     am_read <= '0';
-                    data(7 downto 0) <= am_readdata(31 downto 24);
-                    data(8) <= am_readdata(23);
-                    data(9) <= am_readdata(22);
-                    data(10) <= am_readdata(21);
-                    data(11) <= am_readdata(20);
-                    data(12) <= am_readdata(19);
-                    data(13) <= am_readdata(18);
-                    data(14) <= am_readdata(17);
-                    data(15) <= am_readdata(16);
-                    data(16) <= am_readdata(15);
-                    data(17) <= am_readdata(14);
-                    data(18) <= am_readdata(13);
-                    data(19) <= am_readdata(12);
-                    data(20) <= am_readdata(11);
-                    data(21) <= am_readdata(10);
-                    data(22) <= am_readdata(9);
-                    data(23) <= am_readdata(8);
-                    data(31 downto 0) <= am_readdata(7 downto 0);
+                    am_address <= std_logic_vector(unsigned(write_address) + shift_left(index,2));
+                    am_write <= '1';
+                    am_writedata(7 downto 0) <= am_readdata(31 downto 24);
+                    am_writedata(8) <= am_readdata(23);
+                    am_writedata(9) <= am_readdata(22);
+                    am_writedata(10) <= am_readdata(21);
+                    am_writedata(11) <= am_readdata(20);
+                    am_writedata(12) <= am_readdata(19);
+                    am_writedata(13) <= am_readdata(18);
+                    am_writedata(14) <= am_readdata(17);
+                    am_writedata(15) <= am_readdata(16);
+                    am_writedata(16) <= am_readdata(15);
+                    am_writedata(17) <= am_readdata(14);
+                    am_writedata(18) <= am_readdata(13);
+                    am_writedata(19) <= am_readdata(12);
+                    am_writedata(20) <= am_readdata(11);
+                    am_writedata(21) <= am_readdata(10);
+                    am_writedata(22) <= am_readdata(9);
+                    am_writedata(23) <= am_readdata(8);
+                    am_writedata(31 downto 24) <= am_readdata(7 downto 0);
                 end if;
             when SEND => 
-                am_address <= std_logic_vector(unsigned(write_address) + (index*4));
-                am_write <= '1';
-                am_writedata <= data;
                 if am_wait_request = '0' then
                     index <= index + 1;
                     am_write <= '0';
                     if index + 1 >= unsigned(length) then 
                         index <= (others => '0');
                         state <= IDLE;
+                    else
+                    state <= RETRIEVE;
+                    am_read <= '1';
+                    am_address <= std_logic_vector((unsigned(read_address) + shift_left(index+1, 2)));
+                    am_byte_enable <= "1111";
                     end if;
                 end if;
             when others => null;

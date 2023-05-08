@@ -57,22 +57,32 @@ architecture comp of swapbitdma_tb is
         simulation : process
         begin
             reset_n <= '0';
-            wait for 100 ns;
-            reset_n <= '1';
             wait for 20 ns;
+            reset_n <= '1';
+            --wait for 20 ns;
+            am_wait_request <= '0';
+            am_readdata <= x"89ABCDEF";
+            as_read <= '0';
             as_address <= "00";
             as_writedata <= x"12345678";
             as_write <= '1';
             wait for 20 ns;
             as_address <= "01";
-            as_writedata <= x"76543210";
+            as_writedata <= x"00000000"; --x"76543210";
             wait for 20 ns;     
             as_address <= "10";
             as_writedata <= "00000000000000000000000000000011";
             wait for 20 ns;
             as_address <= "11";
             as_writedata <= x"FFFFFFFF";
-            wait for 50000 ns;
+            wait for 20 ns;
+            as_write <= '0';
+
+            wait for 40 ns;
+            am_wait_request <= '1';
+            wait for 40 ns;
+            am_wait_request <= '0';
+            wait for 5000 ns;
 
         end process;
 
