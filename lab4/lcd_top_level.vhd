@@ -109,7 +109,7 @@ begin
         FIFO_almostfull => FIFO_almostfull   
     );
 
-    fifo : entity work.FIFO
+    fifo : entity work.FIFO_lt_24
     port map (
         clock	 => clk,
         data	 => RdData,
