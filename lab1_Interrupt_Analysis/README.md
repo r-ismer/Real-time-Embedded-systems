@@ -5,11 +5,11 @@ In applications involving real time constraints, the knowledge of the different 
 ## 2. System Architecture
 In this lab we are going to measure the timings of a system with two different memory types: on chip memory and sram. Here are the two configurations we will use:
 
-![System with on chip memory](img/system_on_chip_memory.png)
+![System with on chip memory](./img/system_on_chip_memory.png)
 
 Figure 1 : System with on chip memory
 
-![System with RAM](img/system_ram.png)
+![System with RAM](./img/system_ram.png)
 
 Figure 2 : System with RAM
 ## 3. Custom Timer
@@ -17,7 +17,7 @@ Figure 2 : System with RAM
 
 The timer is a simple component that counts upwards when enabled and generates an interrupt (if interrupts are enabled) when reaching a certain threshold defined by the user. 
 
-![Block diagram of the timer](img/timer_block_diagram.png)
+![Block diagram of the timer](./img/timer_block_diagram.png)
 
 Figure 3: Block Diagram of the Timer
 
@@ -63,13 +63,13 @@ Latency: The time between the interruption and the processor reaching the main I
 Response time: The time between the interruption and the processor reaching our custom ISR.
 Recovery time: The time it takes the processor to go back to the main program after our custom ISR.
 
-![Timing diagram](img/timing_diagram.png)
+![Timing diagram](./img/timing_diagram.png)
 
 Figure 5 : timings
 
 To be able to measure the latency, we use the logic analyser and we modify the “alt_irq_handler.c” file (which contains the main ISR) to set a pin at the beginning and reset the pin at the end. This will create a rising edge when we enter the main ISR. We then only need to measure the time between the rising edge of the IRQ pin of the timer and the rising edge of the main ISR pin to get the latency. This measurement is in µs and not in a number of cycles. We can notice in the graph below that the main ISR is also used by the Jtag print function. The ISR for the print also takes longer than our own custom ISR (the spikes are longer).
 
-![Main ISR triggered by the Jtag print](img/main_isr_triggered_by_jtag_print.png)
+![Main ISR triggered by the Jtag print](./img/main_isr_triggered_by_jtag_print.png)
 
 Figure 6 : main ISR is triggered by the Jtag print
 
