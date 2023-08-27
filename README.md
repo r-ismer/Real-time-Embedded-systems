@@ -9,4 +9,4 @@ Multiprocessors, accelerators, custom instructions, specialized hardware are som
 ## Work done
 
 We had to implement a full embedded system based on a FPGA and softcore NIOSII processors and/or an hardcore ARM-A9 multi-processors. Embedded operating system, specialized interfaces and specific architectures are the basics tools of the course.
-You will have to develop a system as a Web server with specialized functions. A final presentation and demonstration will be part of the evaluation. Regular work reports complete the evaluation.
+We had to develop a system with specialized function as a final project. A final presentation and demonstration will have been part of the evaluation. Regular work reports completed the evaluation.
